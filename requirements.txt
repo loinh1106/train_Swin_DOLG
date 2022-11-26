@@ -1,0 +1,17 @@
+# torch
+resnest==0.0.5
+pandas==0.24.2
+warmup_scheduler==0.3
+tqdm==4.64.0
+opencv_python==4.4.0.44
+numpy==1.18.5
+scikit_learn==1.0.2
+albumentations==1.2.1
+neptune-client==0.9.16
+geffnet==1.0.2
+efficientnet-pytorch==0.7.0
+pytorch-lightning==1.6.4
+timm==0.6.7
+jpeg4py==0.1.4
+faiss-gpu==1.7.2
+wandb==0.13.3
