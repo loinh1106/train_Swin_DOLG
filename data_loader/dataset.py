@@ -54,13 +54,17 @@ def get_transforms(image_size):
     return transforms_train, transforms_val
 
 
-def get_df(path):
-    df = pd.read_csv(path)
-    df['filepath'] = df['id'].apply(lambda x: os.path.join('/'.join(path.split("/")[:-1]),"_".join(x.split("_")[:-1]), f'{x}.jpg'))
+def get_df(trainCSVPath):
+    split_data_dir = trainCSVPath.split("/")
+    data_dir = '/'.join(trainCSVPath.split("/")[:-1])
+    df_train = pd.read_csv(trainCSVPath)
 
-    landmark_id2idx = {landmark_id: idx for idx, landmark_id in enumerate(sorted(df['landmark_id'].unique()))}
-    df['landmark_id'] = df['landmark_id'].map(landmark_id2idx)
+    if 'filepath' not in df_train.columns:
+        df_train['filepath'] = df_train.apply(lambda x: f'{data_dir}/{split_data_dir[-1][:-4]}/{x.id}s/{x.image_name}', axis = 1)
 
-    out_dim = df.landmark_id.nunique()
+    class_id2idx = {class_id: idx for idx, class_id in enumerate(sorted(df_train['id'].unique()))}
+    df_train['id_encode'] = df_train['id'].map(class_id2idx)
 
-    return df, out_dim
+    out_dim = df_train.id_encode.nunique()
+
+    return df_train, out_dim
