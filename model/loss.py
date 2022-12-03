@@ -202,7 +202,7 @@ class Cosface(nn.Module):
         self.crit = DenseCrossEntropy()
         # self.weight = Parameter(torch.FloatTensor(out_features, in_features).cuda())
         
-        nn.init.xavier_uniform_(self.weight)
+        # nn.init.xavier_uniform_(self.weight)
 
     def forward(self, input, label):
         # print(F.normalize(self.weight).shape)

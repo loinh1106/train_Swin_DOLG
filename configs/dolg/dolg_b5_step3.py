@@ -1,7 +1,7 @@
 cfg_b5 = {
     "model": {
         'backbone': 'tf_efficientnet_b5_ns',
-        'n_classes': 127, 
+        'n_classes': 2, 
         'pretrained': True,
         'stride': None,
         'pool': 'gem', # gem pool config
@@ -29,7 +29,7 @@ cfg_b5 = {
         'sampler': 'id_uniform'
       },
     "val": {
-        'batch_size': 2,
+        'batch_size': 32,
         'num_workers': 2,
         'image_size': 256,
         'num_instance': 16,
@@ -40,7 +40,7 @@ cfg_b5 = {
         'image_size': 256,
         'batch_size': 4,
         'num_workers': 2,
-        'out_dim': 17,
+        'out_dim': 2,
         'TOP_K': 5,
         'CLS_TOP_K': 5,
       }
