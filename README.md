@@ -4,13 +4,8 @@
 ## To do task 
 - [x] DOLG
 - [x] Hybrid swin transformer
-- [x] Reranking top 3 2019
-- [x] Reranking top 3 2020
-- [x] ID uniform sampling
-- [x] Softmax uniform sampling 
-- [ ] Continent-aware
-- [ ] Mish activation 
-- [ ] Gradient Clipping 
+- [x] Mish activation 
+- [x] Centralize Gradient
 ---
 
 ## Requirements
@@ -28,89 +23,66 @@ pip install -r requirements.txt
 %cd apex
 !python setup.py install
 ```
+## Prepare CSV file for train, validation (or test)
+```
+python prepare_data_csv.py \
+--data_path /content/small_dog_cat_dataset \
+--output_path /content/data \
+--split_test
+```
+## Note
+```--data_path```: Đường dẫn đến data images
 
-**Train**
+```--output_path```: Đường dẫn chứa các file CSV
 
-**Train DOLG**
+```--split_test```: Nếu cần tách thành 3 file train.csv, val.csv và test.csv (Tỷ lệ Train-Val-Test là 7-2-1)
+## Train
+
 ```
 python -u -m torch.distributed.launch --nproc_per_node=1 \
-          train_DOLG.py \
+          train.py \
+          --model_name dolg \
           --config_name dolg_b5_step3 \
-          --trainCSVPath ./data/train/train_list.txt \
-          --valCSVPath ./data/train/test_train_list.txt \
-          --use_wandb
+          --trainCSVPath /content/drive/MyDrive/AIC_HCM/Image_Retrieval_from_Visual_Data/data/train.csv \
+          --valCSVPath /content/drive/MyDrive/AIC_HCM/Image_Retrieval_from_Visual_Data/data/val.csv \
+          --loss_name cosface \
+          --use_central_gradient \
+          --use_mish \ 
 ```
+
+## Note
+```--model_name```: **'dolg'** cho DOLG và **'swin'** cho Swin Transformer
+
+```--config_name```: tên file config tương ứng với model
+
+```--trainCSVPath```: Đường dẫn đến file train csv
+
+```--valCSVPath```: Đường dẫn đến file val csv
+
+```--loss_name```: Tên của Loss.
+- arcface_dynamicmargin: ArcFaceLossAdaptiveMargin Loss
+- cosface : Cosface Loss
+- CE_smooth_loss : CrossEntropyLossWithLabelSmoothing Loss
+- smooth_CE_loss: LabelSmoothingCrossEntropy Loss
+- circleloss: CircleLoss 
+
+```--use_central_gradient```: Sử dụng *central_gradient*, nếu không dùng chỉ cần comment nó lại
+
+```--use_mish```: Sử dụng *Mish Function* thay cho *SiLU Activation* nếu không dùng chỉ cần comment nó lại
+
 
 **Load Trained Model and Continue Training**
 ```
 python -u -m torch.distributed.launch --nproc_per_node=1 \
-          train_DOLG.py \
+          train.py \
+          --model_name dolg \
           --config_name dolg_b5_step3 \
-          --trainCSVPath ./data/train/train_list.txt \
-          --valCSVPath ./data/train/test_train_list.txt \
+          --trainCSVPath /content/drive/MyDrive/AIC_HCM/Image_Retrieval_from_Visual_Data/data/train.csv \
+          --valCSVPath /content/drive/MyDrive/AIC_HCM/Image_Retrieval_from_Visual_Data/data/val.csv \
           --checkpoint './run/saved/dolg_efficientnet_b5_ns_step3_2.pth' \
-          --use_wandb
-```
-          
-**Train Swin Transformer**
-```
-python -u -m torch.distributed.launch \
-          --nproc_per_node=1 train_swin.py \
-          --config_name swin_224_b5 \
-          --trainCSVPath ./dataset/data/train/train_list.txt \
-          --valCSVPath ./data/train/val_list.txt \
-          --use_wandb
-```
-
-**Load Trained Model and Continue Training**
-```
-python -u -m torch.distributed.launch --nproc_per_node=1 \
-          train_swin.py \
-          --config_name swin_224_b5 \
-          --trainCSVPath ./data/train/train_list.txt \
-          --valCSVPath ./data/train/val_list.txt \
-          --checkpoint './run/saved/swin_224_b3_efficientnet_b5_ns.pth' \
-          --use_wandb
-```
-**Note**- Source: https://github.com/haqishen/Google-Landmark-Recognition-2020-3rd-Place-Solution 
-
-**[Optional]**
-```
-!pip install wandb -qqq
-import wandb
-wandb.login()
-```
-
-**Note**- To use wandb to visuallize while training. You have to enter your API key to login. Check https://wandb.ai/authorize to get API key.
-
-**Predict**
-
-**Predict DOLG with reranking method ("top1_3_2019","top3_2020","top1_shopee")**
-
-```
-python predict_DOLG.py \
-  --config_name dolg_b7_step3 \
-  --reranking_method top1_3_2019 \
-  --weight_path ./run/saved/dolg_efficientnet_b7_ns_step3_2.pth \
-  --data_dir ./data \
-  --trainCSVPath ./data/train/train_list.txt \
-  --testCSVPath ./data/train/test_list.txt \
-  --trainH5Path ./data/train/train.h5 \
-  --indexH5Path ./data/train/index.h5 
-```
-
-**Predict Swin Transformer with reranking method ("top1_3_2019","top3_2020","top1_shopee")**
-
-```
-python predict_swin.py \
-  --config_name swin_224_b5 \
-  --reranking_method top1_3_2019 \
-  --weight_path /content/drive/MyDrive/AIC_HCM/DOLG/DOLG_GIT/saved/dolg_swin_224_b3_efficientnet_b5_ns_1.pth \
-  --data_dir /content/drive/MyDrive/AIC_HCM/DOLG/DOLG-pytorch/dataset/data \
-  --trainCSVPath /content/drive/MyDrive/AIC_HCM/DOLG/DOLG-pytorch/dataset/data/train/train_list.txt \
-  --testCSVPath /content/drive/MyDrive/AIC_HCM/DOLG/DOLG-pytorch/dataset/data/train/test_list.txt \
-  --trainH5Path /content/drive/MyDrive/AIC_HCM/DOLG/DOLG-pytorch/dataset/data/train/train.h5 \
-  --indexH5Path /content/drive/MyDrive/AIC_HCM/DOLG/DOLG-pytorch/dataset/data/train/index.h5 
+          --loss_name cosface \
+          --use_central_gradient \
+          --use_mish \ 
 ```
 
 ---
@@ -125,7 +97,7 @@ python predict_swin.py \
   ├── data/ - default directory for storing input data
   │
   ├── data_loader/ - anything about data loading goes here
-  │   └── data_loaders.py
+  │   └── dataset.py
   |
   ├── model/ - this folder contains any net of your project.
   │   ├── model.py
