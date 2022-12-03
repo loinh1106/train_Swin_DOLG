@@ -17,8 +17,8 @@ from apex.parallel import DistributedDataParallel
 from apex import amp
 
 from configs.config import init_config
-from model.DOLG import ArcFaceLossAdaptiveMargin,DOLG
-from model.hybrid_swin_transformer import ArcFaceLossAdaptiveMargin, SwinTransformer
+from model.DOLG import DOLG
+from model.hybrid_swin_transformer import SwinTransformer
 from model.loss import *
 from utils.util import global_average_precision_score, GradualWarmupSchedulerV2
 from data_loader.dataset import LandmarkDataset, get_df, get_transforms
