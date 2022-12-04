@@ -6,7 +6,7 @@ from torch.nn import Parameter
 import math
 
 class ArcFaceLossAdaptiveMargin(nn.modules.Module):
-    def __init__(self, margins, s=30.0, out_dim):
+    def __init__(self, out_dim, margins, s=30.0):
         super().__init__()
         self.crit = DenseCrossEntropy()
         self.s = s
