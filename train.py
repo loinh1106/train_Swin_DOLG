@@ -238,6 +238,20 @@ class Ranger(Optimizer):
 
         return loss
 
+class EarlyStopping():
+    def __init__(self, tolerance=5, min_delta=0):
+
+        self.tolerance = tolerance
+        self.min_delta = min_delta
+        self.counter = 0
+        self.early_stop = False
+
+    def __call__(self, train_loss, validation_loss):
+        if (validation_loss - train_loss) > self.min_delta:
+            self.counter +=1
+            if self.counter >= self.tolerance:  
+                self.early_stop = True
+
 class ModelIRScheduler(_LRScheduler):
     def __init__(self, optimizer, lr_start=5e-6, lr_max=1e-5,
                  lr_min=1e-6, lr_ramp_ep=5, lr_sus_ep=0, lr_decay=0.8,
@@ -455,6 +469,7 @@ def train(cfg, args):
 
     model = DOLG(cfg).cuda() if args.model_name == "dolg" else SwinTransformer(cfg).cuda()
     model = apex.parallel.convert_syncbn_model(model)
+    early_stopping = EarlyStopping(tolerance= 5, min_delta = 10)
 
     ####
     if args.use_mish:
@@ -562,6 +577,11 @@ def train(cfg, args):
             print('gap_m_max ({:.6f} --> {:.6f}). Saving model to {}'.format(gap_m_max, gap_m, save_dir))
             torch.save(ckpt, save_dir)
             gap_m_max = gap_m
+        
+        early_stopping(train_loss, val_loss)
+        if early_stopping.early_stop:
+            print(f'Stop at epoch {epoch}')
+            break
 
 
 if __name__ == '__main__':
